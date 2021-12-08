@@ -6,8 +6,8 @@
 
 ### Step 2: Explore and Assess the Data
 #### Data quality issues:
- - For a certain depth, the data is splitted in separate files.
- - Relationships between ids are stored in non efficient tabular format.
+ - For a certain depth, the data is split in separate files.
+ - Relationships between ids are stored in an inefficient tabular format.
  - Every folder date has a log.txt file with the sum of records included in the folder. It will be use as part of the sanity check once we load the files into a database.
  - Steps to clean the data:
 	-- Convert the days columns from number into a datetime object in database.

@@ -2,16 +2,19 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.postgres_operator import PostgresOperator
+
+import sql_statements
+from has_rows import HasRowsOperator
+from s3_to_redshift import S3ToRedshiftOperator
+from data_checkers import check_log_files
 from dag_config import config
 from helper_functions import proxy_to_jobdate
 from file_loaders import download_files_for_date, convert_data_files, load_files_to_S3
 
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from airflow.operators.dummy_operator import DummyOperator
-from has_rows import HasRowsOperator
-from s3_to_redshift import S3ToRedshiftOperator
-from data_checkers import check_log_files
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level='INFO')
@@ -78,6 +81,14 @@ load_files_to_S3_task = PythonOperator(
     dag=yt_dag)
 
 
+create_sql_tables_task = PostgresOperator(
+    task_id="create_sql_tables",
+    dag=yt_dag,
+    postgres_conn_id="redshift",
+    sql=sql_statements.CREATE_TABLES_SQL,
+)
+
+
 load_details_from_s3_to_redshift_task = S3ToRedshiftOperator(
     task_id="load_details_from_s3_to_redshift",
     dag=yt_dag,
@@ -127,13 +138,22 @@ check_log_files_task = PythonOperator(
     provide_context=True,
     dag=yt_dag)
 
+analyze_related_ids_task = PostgresOperator(
+    task_id="analyze_related_ids",
+    dag=yt_dag,
+    postgres_conn_id="redshift",
+    sql=sql_statements.AGGREGATED_RELATED_SQL,
+)
 
-init_task >> download_files_task >> convert_data_files_task >> load_files_to_S3_task
+
+init_task >> download_files_task >> convert_data_files_task >> create_sql_tables_task >> load_files_to_S3_task
 
 load_files_to_S3_task >> load_details_from_s3_to_redshift_task >> check_norows_details_task
 load_files_to_S3_task >> load_related_from_s3_to_redshift_task >> check_norows_related_task
 
 check_norows_details_task >> check_log_files_task
 
-check_log_files_task >> end_task
-check_norows_related_task >> end_task
+check_log_files_task >> analyze_related_ids_task
+check_norows_related_task >> analyze_related_ids_task
+
+analyze_related_ids_task >> end_task

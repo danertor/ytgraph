@@ -56,5 +56,7 @@ Related ID | a 11-digit string of the related video
 
 #### SQL Tables 
 
+![Alt text](https://raw.githubusercontent.com/danertor/ytgraph/master/doc/data_model.svg)
+<img src="https://raw.githubusercontent.com/danertor/ytgraph/master/doc/data_model.svg">
 
 ### Step 4: Run ETL to Model the Data

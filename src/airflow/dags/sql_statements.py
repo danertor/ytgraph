@@ -30,7 +30,7 @@ CREATE_TABLES_SQL = '\n'.join([CREATE_DETAILS_TABLE_SQL, CREATE_RELATED_TABLE_SQ
 AGGREGATED_RELATED_SQL = """
 BEGIN;
 DROP TABLE IF EXISTS related_aggregated;
-CREATE TABLE related_aggregated AS
+CREATE TABLE related_aggregate AS
 SELECT
     d.date,
     d.video_id,
@@ -42,11 +42,12 @@ SELECT
     d.rate,
     d.ratings,
     d.comments,
+    ag.num_related
 FROM details d
 JOIN (
     SELECT
         video_id,
-        COUNT(related_id) AS num_relateds
+        COUNT(related_id) AS num_related
     FROM related
     GROUP BY video_id
 ) AS ag ON d.video_id = ag.video_id

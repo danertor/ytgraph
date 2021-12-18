@@ -1,6 +1,8 @@
+"""
+Airflow operator to check if a table has rows.
+"""
 import logging
 
-from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
@@ -25,5 +27,4 @@ class HasRowsOperator(BaseOperator):
         num_records = records[0][0]
         if num_records < 1:
             raise ValueError(f"Data quality check failed. {self.table} contained 0 rows")
-        logging.info(f"Data quality on table {self.table} check passed with {records[0][0]} records")
-
+        logging.info("Data quality on table %s check passed with %s records", self.table, records[0][0])

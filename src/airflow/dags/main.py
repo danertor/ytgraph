@@ -1,3 +1,7 @@
+"""
+Where the Airflow DAG is specified.
+For every external function imported here, a wrapper function is created.
+"""
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -13,7 +17,8 @@ from s3_to_redshift import S3ToRedshiftOperator
 from data_checkers import check_log_files
 from dag_config import config
 from helper_functions import proxy_to_jobdate
-from file_loaders import download_files_for_date, convert_data_files, load_files_to_S3
+from file_loaders import download_files_for_date, convert_data_files
+from file_loaders_s3 import load_files_to_s3
 
 
 logger = logging.getLogger(__name__)
@@ -68,15 +73,15 @@ convert_data_files_task = PythonOperator(
     dag=yt_dag)
 
 
-def load_files_to_S3_wrapper(*args: dict, **kwargs: dict):
+def load_files_to_s3_wrapper(*args: dict, **kwargs: dict):
     jobdate = proxy_to_jobdate(str(kwargs['execution_date']), default_value=config['DEFAULT_DATE'])
     print(jobdate)
-    load_files_to_S3(str(Path(config['DATA_PATH'], jobdate)))
+    load_files_to_s3(str(Path(config['DATA_PATH'], jobdate)))
 
 
 load_files_to_S3_task = PythonOperator(
     task_id='load_files_to_S3',
-    python_callable=load_files_to_S3_wrapper,
+    python_callable=load_files_to_s3_wrapper,
     provide_context=True,
     dag=yt_dag)
 

@@ -1,3 +1,7 @@
+"""
+For providing access to the general configuration objects that will be used in this module.
+It contains one or more singletons.
+"""
 config = {
   "DATA_PATH": "../data/yt_data",
   'DATE_FORMAT': "%y%m%d",

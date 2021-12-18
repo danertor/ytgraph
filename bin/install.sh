@@ -14,6 +14,3 @@ mkdir -p /root/airflow
 export AIRFLOW_HOME=/root/airflow
 export SLUGIFY_USES_TEXT_UNIDECODE=yes
 pip install -r ../src/requirements.txt
-#pip install "boto3>=1.9,<2"
-#pip install psycopg2
-#pip install apache-airflow[async,devel,crypto,hdfs,hive,password,postgres,s3]==1.10.2 WTForms==2.3.3

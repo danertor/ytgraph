@@ -1,0 +1,10 @@
+[MASTER]
+ignore=stg
+ignore-patterns=stg/*
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+# Because of how the Airflow tasks dependencies are assigned.
+disable=w0104,C0415

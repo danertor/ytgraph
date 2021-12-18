@@ -1,10 +1,15 @@
+"""
+Data quality functionality.
+"""
 import logging
 from pathlib import Path
 from dag_config import config
+from datetime import datetime
 from airflow.hooks.postgres_hook import PostgresHook
 
 
 logger = logging.getLogger(__name__)
+
 logging.basicConfig(level='INFO')
 
 
@@ -13,16 +18,17 @@ def check_log_files(date: str, redshift_conn_id: str, table: str) -> None:
     Sanity check if every record was loaded into DB for the Date.
     log files row count from zip must be equal to loaded rowcount into DB for the date.
     :param date: date in specific string format.
+    :param redshift_conn_id: The name of the connection string saved in Airflow
+    :param table: table name that has the data to be checked.
     :return:
     """
     date_format = config['DATE_FORMAT']
     log_num_records = 0
     try:
-        from datetime import datetime
         _ = datetime.strftime(datetime.strptime(date, date_format), date_format)
-    except Exception as e:
+    except Exception as date_exec:
         raise ValueError(f"Incorrect date format. The date must be {date_format}.")
-    log_file_path = str(Path(config['DATA_PATH']), date, 'log.txt.)')
+    log_file_path = str(Path(config['DATA_PATH']), date, 'log.txt.')
     # Small file, 15 lines max
     with open(log_file_path, 'r') as fin:
         log_data = fin.read()
@@ -41,5 +47,4 @@ def check_log_files(date: str, redshift_conn_id: str, table: str) -> None:
     records = redshift_hook.get_records(f"SELECT COUNT(*) FROM {table} WHERE date='{date}'")
     db_num_records = int(records[0][0])
     assert db_num_records == log_num_records, ValueError(f"Data quality check failed. {table} contained 0 rows")
-    logging.info(f"Data quality on table {table} check passed with {db_num_records} records")
-
+    logging.info("Data quality on table %s check passed with %s records", table, db_num_records)

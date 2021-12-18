@@ -15,9 +15,11 @@ from typing import List
 from io import BytesIO
 from pathlib import Path
 from datetime import datetime, timedelta
-from . import config
+from . import config, AWS_KEY, AWS_SECRET
+
 
 logger = logging.getLogger(__name__)
+
 logging.basicConfig(level='INFO')
 
 
@@ -53,7 +55,7 @@ def download_files(dir_path: str, urls: List[str]) -> None:
         downloaded_date = os.path.basename(fname).split('.')[0]
 
         async with sema, aiohttp.ClientSession() as session:
-            logger.info(f" Download {url}")
+            logger.info("Download %s", url)
             async with session.get(url, ssl=False) as resp:
                 assert resp.status == 200
                 data = await resp.read()
@@ -67,12 +69,12 @@ def download_files(dir_path: str, urls: List[str]) -> None:
         os.makedirs(zip_dir_path)
         with BytesIO(data) as fin:
             with zipfile.ZipFile(fin) as zipfin:
-                logger.info(f"Extracting file {fname}")
+                logger.info("Extracting file %s", fname)
                 for zipinfo in zipfin.infolist():
                     if zipinfo.filename.endswith('.txt'):
                         date_filename = os.path.basename(zipinfo.filename)
                         async with aiofiles.open(str(Path(zip_dir_path, date_filename)), "wb") as outfile:
-                            logger.info(f"Extracting file {date_filename}")
+                            logger.info("Extracting file %s", date_filename)
                             with zipfin.open(zipinfo) as file_data:
                                 await outfile.write(file_data.read())
 
@@ -171,24 +173,6 @@ def convert_data_files(dir_path: str) -> None:
                         for related_id in related_ids:
                             row = [detail_fields[0], related_id]
                             related_ids_csv_writer.writerow(row)
-
-
-def load_files_to_S3(dir_path: str) -> None:
-    directory = dir_path
-    combined_details_filename = 'details.txt'
-    related_ids_filename = 'related_ids.txt'
-    combined_details_filepath = str(Path(dir_path, combined_details_filename))
-    related_ids_filepath = str(Path(dir_path, related_ids_filename))
-    S3_BUCKET_NAME_DETAILS = config['S3_BUCKET_NAME_DETAILS']
-    S3_BUCKET_NAME_RELATED = config['S3_BUCKET_NAME_RELATED']
-
-    client = boto3.client('s3', aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET)
-
-    with open(combined_details_filepath, "r") as f:
-        client.upload_fileobj(f, S3_BUCKET_NAME_DETAILS, combined_details_filename)
-
-    with open(related_ids_filepath, "r") as f:
-        client.upload_fileobj(f, S3_BUCKET_NAME_RELATED, related_ids_filename)
 
 
 if __name__ == '__main__':

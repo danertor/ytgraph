@@ -1,3 +1,7 @@
+"""
+Functions that are general and not dependant of the pipeline framework or any other external service or library.
+Only builtins python objects should be use in this file.
+"""
 import json
 import traceback
 

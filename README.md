@@ -59,3 +59,5 @@ Related ID | a 11-digit string of the related video
 ![Alt text](https://raw.githubusercontent.com/danertor/ytgraph/master/doc/data_model.svg)
 
 ### Step 4: Run ETL to Model the Data
+*To see the data dictionary, please refer to the previous Step 3.*
+The data pipeline implementation can be found on the `dags` folder

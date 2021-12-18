@@ -5,7 +5,6 @@ import os
 import shutil
 import re
 import logging
-import datetime
 import asyncio
 import aiohttp
 import aiofiles
@@ -15,9 +14,8 @@ import boto3
 from typing import List
 from io import BytesIO
 from pathlib import Path
-from auth import AWS_KEY, AWS_SECRET
-from dag_config import config
-
+from datetime import datetime, timedelta
+from . import config
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level='INFO')
@@ -92,7 +90,6 @@ def download_files_for_date(date: str) -> None:
     """
     date_format = config['DATE_FORMAT']
     try:
-        from datetime import datetime
         _ = datetime.strftime(datetime.strptime(date, date_format), date_format)
     except Exception as e:
         raise ValueError(f"Incorrect date format. The date must be {date_format}.")
@@ -126,15 +123,17 @@ def clean_detail_line_data(detail_row: List[str], date: str) -> List[str]:
     :param date: job data to be added to data
     :return: a cleaned list of details fields
     """
+    if not detail_row:
+        print('detail_row:', detail_row)
+        return detail_row
     # The age field is an integer number of days between the date when the video was uploaded and Feb.15,
     # 2007 (YouTube's establishment)
     age_field_location = 2
     age_date_format = '%Y-%m-%d'
-    age = detail_row[age_field_location] if detail_row[age_field_location].strip() else 0
-    new_date = datetime.datetime.strptime('2007-02-15', age_date_format) + datetime.timedelta(days=age)
+    age = int(detail_row[age_field_location].strip()) if detail_row[age_field_location].strip() else 0
+    new_date = datetime.strptime('2007-02-15', age_date_format) + timedelta(days=age)
     detail_row[age_field_location] = datetime.strftime(new_date, age_date_format)
-    detail_row = [date, ].extend(detail_row)
-    return detail_row
+    return [date, ] + detail_row
 
 
 def convert_data_files(dir_path: str) -> None:

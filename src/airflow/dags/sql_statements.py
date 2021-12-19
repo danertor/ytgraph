@@ -1,7 +1,7 @@
 # video ID, uploader, age, category, length, views, rate, ratings, comments, related ID
 # mNyLXihvAIQ,Ceniale90,1236,Music,204,515,5,6,3
 CREATE_DETAILS_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS trips (
+CREATE TABLE IF NOT EXISTS details (
 date VARCHAR(20) NOT NULL,
 video_id VARCHAR(20) NOT NULL,
 uploader VARCHAR(256) NOT NULL,

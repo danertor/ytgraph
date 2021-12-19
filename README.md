@@ -56,9 +56,20 @@ The database architecture of this project is a data warehouse like instance. Sin
 	-- Add the job date from the folder name and save it into the table for those records.
 
 ## Data Dictionary
-#### The downloaded files from the source have the following format:
- - `1.txt`, `2.txt`, `3.txt` files:
- 
+There are two data file formats: csv and unstructured text files.
+For every date the folder structure of downloaded data will be something like this:
+
+	├───070302
+	│       0.txt
+	│       1.txt
+	│       2.txt
+	│       3.txt
+	│       log.txt
+
+
+### CSV files `0.txt`, `1.txt`, `2.txt`, `3.txt`: 
+These files from the details source have the following format:
+  
 Text field name | Comments
 ------------- | -------------
 video ID | an 11-digit string, which is unique
@@ -72,7 +83,28 @@ ratings | an integer number of the ratings
 comments | an integer number of the comments
 related IDs | up to 20 strings of the related video IDs
 
-#### The stage converted files downloaded files from the source have the following format:
+
+### Unstructured text `log.txt` files: 
+The log files will be a text based report that looks like this:
+
+`log.txt`:
+
+    normal crawl
+    
+    all information
+    
+    start:  0302 14:30:20
+    finish:  0302 15:48:32
+    
+        video	time
+    0	2602	54
+    1	15493	568
+    2	8529	4070
+    3	18529	9435
+    total	45153	14127
+
+
+### The stage converted files downloaded files from the source have the following format:
  - details.txt
 
 Text field name | Comments
@@ -115,3 +147,37 @@ The different tests are found in the `test` folder.
 *Note: This project must be installed in a GNU/Linux Machine. Apache Airflow 1.X requires a GNU/Linux or MacOS machine.*
 
 >bash /bin/install.sh
+
+# Exploratory data Analysis on processed data
+
+To check the data, these queries have been executed with the result plotted.
+query:
+
+*"Get the total amount of videos per category."*
+
+	SELECT
+	    category,
+	    COUNT(video_id) as num_videos
+	FROM details
+	GROUP BY category
+	ORDER BY COUNT(video_id) DESC;
+![Alt text](https://raw.githubusercontent.com/danertor/ytgraph/master/doc/categories_count.png)
+
+*"Get the amount of videos per category where each video has been related by 1000 or more videos."*
+
+	SELECT
+	    d.category,
+	    COUNT(d.video_id) as videos
+	FROM details d
+	JOIN (
+	    SELECT
+	        related_id as video_id,
+	        COUNT(video_id) AS num_related
+	    FROM related
+	    GROUP BY related_id
+	) AS ag ON d.video_id = ag.video_id
+	WHERE num_related >= 1000
+	GROUP BY d.category
+	ORDER BY COUNT(d.video_id) DESC;
+![Alt text](https://raw.githubusercontent.com/danertor/ytgraph/master/doc/videos_related_1000_per_category.png)
+
